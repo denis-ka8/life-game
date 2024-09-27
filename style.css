@@ -1,0 +1,52 @@
+body {
+	font-family: sans-serif;
+	margin: 30px;
+}
+input {
+	display: block;
+	width: 60px;
+	border: 1px solid #c1c1c1;
+	border-radius: 5px;
+	padding: 4px 12px;
+}
+label {
+	display: block;
+	margin-bottom: 5px;
+	color: #686868;
+}
+.button {
+	border: none;
+	background: #2b80f5;
+	color: #fff;
+	border: 1px solid #2b80f5;
+	border-radius: 5px;
+	padding: 4px 12px;
+	cursor: pointer;
+}
+.button-secondary {
+	border: 1px solid #2b80f5;
+	background: #fff;
+	color: #2b80f5;
+}
+.controls {
+	display: flex;
+	gap: 30px;
+}
+.control-actions {
+	margin-top: 15px;
+}
+.control-inputs {
+	display: flex;
+	gap: 15px;
+}
+.life-info {
+	line-height: 25px;
+}
+.life-info-error {
+	color: rgb(255, 77, 77);
+	margin-top: 15px;
+}
+canvas {
+	margin-top: 30px;
+	outline: 1px solid rgb(255, 77, 77);
+}

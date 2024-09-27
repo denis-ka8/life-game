@@ -2,9 +2,46 @@
 <html>
 	<head>
 		<title>Life</title>
+		<link rel="stylesheet" href="style.css" />
 	</head>
 	<body>
-		<canvas id="life" width="33" height="33" style="outline: 1px solid red;"></canvas>
+		<div class="controls">
+			<div>
+				<label>Размер поля</label>
+				<div class="control-inputs">
+					<input
+						type="text"
+						placeholder="Ширина"
+						name="width"
+						id="inp-field-width"
+					/>
+					<input
+						type="text"
+						placeholder="Высота"
+						name="height"
+						id="inp-field-height"
+					/>
+				</div>
+			</div>
+			<div>
+				<label>Поколение</label>
+				<div id="info-generation" class="life-info">1</div>
+			</div>
+			<div>
+				<label>Время генерации нового поколения</label>
+				<div id="info-time" class="life-info">0</div>
+			</div>
+		</div>
+		<div class="control-inputs control-actions">
+			<button type="button" class="button button-secondary" id="btn-set-size">Изменить размер</button>
+			<button type="button" class="button button-secondary" id="btn-generate">Сгенерировать поколение</button>
+			<button type="button" class="button button-secondary" id="btn-clear">Очистить</button>
+			<button type="button" class="button" id="btn-stop">Стоп</button>
+			<button type="button" class="button" id="btn-start">Старт</button>
+		</div>
+		<div id="info-error" class="life-info-error"></div>
+
+		<canvas id="life" width="200" height="200"></canvas>
 		<script src="script.js"></script>
 	</body>
 </html>
