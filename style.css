@@ -45,6 +45,7 @@ label {
 .life-info-error {
 	color: rgb(255, 77, 77);
 	margin-top: 15px;
+	min-height: 18px;
 }
 canvas {
 	margin-top: 30px;

@@ -33,8 +33,110 @@
 				this.generateListener.bind(this)
 			)
 			this.btnClear.addEventListener("click", this.clearListener.bind(this))
+
+			this.canvas.addEventListener(
+				"mousedown",
+				this.mouseDownListener.bind(this)
+			)
+			this.canvas.addEventListener(
+				"mousemove",
+				this.mouseMoveListener.bind(this)
+			)
+			window.addEventListener("mouseup", this.mouseUpListener.bind(this))
 		}
 
+		/**
+		 * Start mouse draw functions
+		 */
+		mouseUpListener(event) {
+			this.mouseDown = false
+			if (this.generatedByMouse) {
+				this.generatedByMouse = false
+				this.prepareDataFromCanvas()
+			}
+		}
+
+		mouseDownListener(event) {
+			this.mouseDown = true
+			const { offsetX, offsetY } = event
+
+			this.drawPrevX = this.drawCurX
+			this.drawPrevY = this.drawCurY
+			this.drawCurX = offsetX
+			this.drawCurY = offsetY
+
+			this.ctx.beginPath()
+			this.ctx.fillStyle = "black"
+			this.ctx.fillRect(this.drawCurX, this.drawCurY, 1, 1)
+			this.ctx.closePath()
+		}
+
+		mouseMoveListener(event) {
+			if (this.mouseDown) {
+				const { offsetX, offsetY } = event
+				this.drawPrevX = this.drawCurX
+				this.drawPrevY = this.drawCurY
+
+				this.drawCurX = offsetX
+				this.drawCurY = offsetY
+				this.drawOnMouseMove()
+			}
+		}
+
+		drawOnMouseMove() {
+			this.ctx.beginPath()
+			this.ctx.moveTo(this.drawPrevX, this.drawPrevY)
+			this.ctx.lineTo(this.drawCurX, this.drawCurY)
+			this.ctx.strokeStyle = "black"
+			this.ctx.lineWidth = 30
+			this.ctx.stroke()
+			this.ctx.closePath()
+			this.generated = true
+			this.generatedByMouse = true
+		}
+
+		prepareDataFromCanvas() {
+			this.imageData = this.ctx.getImageData(0, 0, this.width, this.height)
+			let imageBuffer = new ArrayBuffer(this.imageData.data.length)
+			this.clampedImageData = new Uint8ClampedArray(imageBuffer)
+			this.clampedImageData.set(this.imageData.data)
+
+			this.field = new Array(this.height)
+			for (let i = 0; i < this.field.length; i++) {
+				this.field[i] = new Array(this.width)
+			}
+
+			let row = 0,
+				col = 0
+			for (let i = 0; i < this.imageData.data.length; i += 4) {
+				col = i / 4 - row * this.width
+				if (col >= this.width) {
+					col = 0
+					row++
+				}
+				if (this.imageData.data[i + 3] === 0) {
+					this.field[row][col] = 0
+				} else {
+					this.field[row][col] =
+						this.imageData.data[i] === 255 &&
+						this.imageData.data[i + 1] === 255 &&
+						this.imageData.data[i + 2] === 255
+							? 0
+							: 1
+				}
+			}
+
+			this.tempField = this.field.map(function (arr) {
+				return arr.slice()
+			})
+		}
+		/**
+		 * End mouse draw functions
+		 */
+
+		/**
+		 * Start control listeners
+		 */
 		stopListener(event) {
 			clearInterval(this.infoInterval)
 			if (this.generationStarted) {
@@ -45,7 +147,6 @@
 			this.generation = 0
 			this.generationStarted = false
 			this.generationTime = 0
-			this.generationPrevDate = 0
 			this.currentSnapshot = []
 			this.generationSnapshots = []
 		}
@@ -55,13 +156,7 @@
 			this.drawRandomField()
 		}
 
-		clearListener(event) {
-			this.stopListener()
-
-			this.ctx = this.canvas.getContext("2d")
-			this.imageData = this.ctx.createImageData(this.width, this.height)
-			this.ctx.putImageData(this.imageData, 0, 0)
-
+		generateFieldArrays() {
 			let imageBuffer = new ArrayBuffer(this.imageData.data.length)
 			this.clampedImageData = new Uint8ClampedArray(imageBuffer)
 			this.clampedImageData.set(this.imageData.data)
@@ -73,6 +168,17 @@
 			this.tempField = this.field.map(function (arr) {
 				return arr.slice()
 			})
+		}
+
+		clearListener(event) {
+			this.stopListener()
+
+			this.ctx = this.canvas.getContext("2d")
+			this.imageData = this.ctx.createImageData(this.width, this.height)
+			this.ctx.putImageData(this.imageData, 0, 0)
+
+			this.generateFieldArrays()
+
 			this.infoGeneration.innerText = "0"
 			this.infoTime.innerText = "0"
 			this.infoError.innerText = ""
@@ -114,6 +220,9 @@
 			}
 			this.start()
 		}
+		/**
+		 * End control listeners
+		 */
 
 		showInfo() {
 			this.infoGeneration.innerText = this.generation
@@ -149,7 +258,6 @@
 			})
 			this.generation++
 			this.ctx.putImageData(this.imageData, 0, 0)
-			this.generationPrevDate = new Date().getTime()
 
 			this.generationSnapshots.push(this.currentSnapshot)
 			this.generated = true
@@ -210,6 +318,8 @@
 		}
 
 		step() {
+			const stepStart = performance.now()
+
 			this.currentSnapshot = []
 			let string32Bit = ""
 			this.tempField = this.field.map(function (arr) {
@@ -246,12 +356,13 @@
 
 			this.generation++
 			this.ctx.putImageData(this.imageData, 0, 0)
-			let generationDate = new Date().getTime()
-			this.generationTime = generationDate - this.generationPrevDate
-			this.generationPrevDate = generationDate
 
 			this.generationSnapshots.push(this.currentSnapshot)
 			let repeatIndex = this.checkGenerationsRepeat()
+
+			const stepEnd = performance.now()
+			this.generationTime = stepEnd - stepStart
+
 			return { paintedCount, repeatIndex }
 		}
 
@@ -289,7 +400,5 @@
 		}
 	}
 
-	let life = new Life()
-	life.drawRandomField()
-	life.start()
+	new Life()
 })()
